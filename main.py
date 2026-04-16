@@ -4,7 +4,7 @@ from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
 
-@register("picture-send", "Enigfrank", "发送作业插件插件", "1.0.0")
+@register("picture-send", "Enigfrank", "发送作业插件插件", "1.0.1")
 class MyPlugin(Star):
     """提供作业图片发送能力的 AstrBot 插件。"""
 
