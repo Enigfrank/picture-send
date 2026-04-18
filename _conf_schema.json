@@ -1,0 +1,60 @@
+{
+  "wecom_corp_id": {
+    "type": "string",
+    "description": "企业微信 CorpID",
+    "hint": "用于换取 access_token。"
+  },
+  "wecom_contact_secret": {
+    "type": "string",
+    "description": "客户联系 Secret",
+    "hint": "需要具备 externalcontact/get 权限；如果没有，昵称查询会失败。",
+    "invisible": true
+  },
+  "enable_wecom_name_lookup": {
+    "type": "bool",
+    "description": "是否启用企业微信昵称查询",
+    "default": true
+  },
+  "stats_storage": {
+    "type": "object",
+    "description": "统计存储配置",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "description": "是否启用持久化统计",
+        "default": true
+      },
+      "file_name": {
+        "type": "string",
+        "description": "统计文件名",
+        "default": "homework_stats.json"
+      },
+      "keep_latest_records": {
+        "type": "int",
+        "description": "每个用户保留的最近请求时间条数，0 表示不限制",
+        "default": 0
+      }
+    }
+  },
+  "log_settings": {
+    "type": "object",
+    "description": "日志配置",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "description": "是否输出作业请求日志",
+        "default": true
+      },
+      "mask_user_id": {
+        "type": "bool",
+        "description": "是否对 user_id 做脱敏",
+        "default": true
+      },
+      "template": {
+        "type": "string",
+        "description": "日志模板",
+        "default": "📊 作业请求 | user_id={user_id} | user_name={user_name} [api={api}] | platform={platform} | count={count} | time={time}"
+      }
+    }
+  }
+}
