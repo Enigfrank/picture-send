@@ -2,16 +2,16 @@
   "wecom_corp_id": {
     "type": "string",
     "description": "企业微信 CorpID",
-    "hint": "用于换取 access_token。"
+    "hint": "用于获取 access_token。"
   },
-  "wecom_contact_secret": {
+  "wecom_kf_secret": {
     "type": "string",
-    "description": "客户联系 Secret",
-    "hint": "需要具备 externalcontact/get 权限；如果没有，昵称查询会失败。"
+    "description": "微信客服 Secret",
+    "hint": "用于获取 access_token，并调用微信客服接口（如获取客户基础信息）。"
   },
   "enable_wecom_name_lookup": {
     "type": "bool",
-    "description": "是否启用企业微信昵称查询",
+    "description": "是否启用微信客服昵称查询",
     "default": true
   },
   "stats_storage": {
