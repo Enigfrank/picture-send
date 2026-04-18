@@ -68,7 +68,6 @@ class MyPlugin(Star):
             self._stats_file,
         )
 
-    @filter.command("作业")
     @filter.command("homework")
     async def homework(self, event: AstrMessageEvent):
         platform = (event.get_platform_name() or "").strip().lower()
