@@ -7,8 +7,7 @@
   "wecom_contact_secret": {
     "type": "string",
     "description": "客户联系 Secret",
-    "hint": "需要具备 externalcontact/get 权限；如果没有，昵称查询会失败。",
-    "invisible": true
+    "hint": "需要具备 externalcontact/get 权限；如果没有，昵称查询会失败。"
   },
   "enable_wecom_name_lookup": {
     "type": "bool",
