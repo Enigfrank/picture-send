@@ -5,4 +5,4 @@ version: v1.0.1 # 插件版本号。格式：v1.1.1 或者 v1.1
 author: Enigfrank # 作者
 repo: https://github.com/Enigfrank/picture-send # 插件的仓库地址
 support_platforms: # 支持的平台列表
-  - lark
+  - wecom
