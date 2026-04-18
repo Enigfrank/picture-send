@@ -19,9 +19,9 @@ except Exception:
     get_astrbot_data_path = None
 
 
-@register("picture-send", "Enigfrank", "发送作业图片", "1.3.0")
+@register("picture-send", "Enigfrank", "发送作业图片", "1.4.0")
 class MyPlugin(Star):
-    """仅适配微信客服（wecom）的作业图片插件。"""
+    """仅适配企业微信微信客服(wecom)的作业图片插件。"""
 
     _HOMEWORK_BASE_DIR = Path("/AstrBot/data/homework")
     _HOMEWORK_DEFAULT_STEM = "hm"
@@ -63,7 +63,7 @@ class MyPlugin(Star):
 
     async def initialize(self):
         logger.info(
-            "作业插件已初始化 | data_dir=%s | stats_file=%s",
+            "作业发送插件初始化完成 | data_dir=%s | stats_file=%s",
             self._plugin_data_dir,
             self._stats_file,
         )
@@ -73,18 +73,17 @@ class MyPlugin(Star):
     async def homework(self, event: AstrMessageEvent):
         platform = (event.get_platform_name() or "").strip().lower()
         if platform != "wecom":
-            yield event.plain_result("本插件仅支持企业微信（wecom）。")
+            yield event.plain_result("本插件仅支持企业微信(wecom)")
             return
 
         image_path = self._resolve_default_homework_image()
         if image_path is None:
-            yield event.plain_result("未找到默认作业图片，请检查 /AstrBot/data/homework 目录中的 hm 文件。")
+            yield event.plain_result("未找到默认作业图片,请上报问题给许工!")
             return
 
         user_id = self._get_user_id(event)
         request_time = self._get_request_time(event)
 
-        # 先用事件中的昵称，查不到再走微信客服接口
         event_user_name = self._clean_text(event.get_sender_name())
         user_name = event_user_name or "未知用户"
 
@@ -118,12 +117,50 @@ class MyPlugin(Star):
             )
 
         logger.info(
-            "发送默认作业图片, sender_id=%s, sender_name=%s, image=%s",
+            "发送作业图片, sender_id=%s, sender_name=%s, image=%s",
             user_id,
             user_name,
             image_path,
         )
         yield event.image_result(image_path)
+
+    @filter.command("userid")
+    async def userid_lookup(self, event: AstrMessageEvent, target_user_id: str):
+        """
+        /userid {用户微信ID}
+        查询指定用户ID对应的微信昵称
+        """
+        platform = (event.get_platform_name() or "").strip().lower()
+        if platform != "wecom":
+            yield event.plain_result("本插件仅支持企业微信(wecom)")
+            return
+
+        target_user_id = self._clean_text(target_user_id)
+        if not target_user_id:
+            yield event.plain_result("用法：/userid {用户微信ID}")
+            return
+
+        nickname = await self._fetch_wecom_user_name(target_user_id)
+        if nickname:
+            logger.info(
+                "🔎 用户昵称查询 | target_user_id=%s | nickname=%s | platform=%s",
+                self._mask_user_id(target_user_id) if self._mask_user_id_enabled else target_user_id,
+                nickname,
+                platform,
+            )
+            yield event.plain_result(
+                f"用户ID:{target_user_id}\n微信昵称:{nickname}"
+            )
+            return
+
+        logger.warning(
+            "🔎 用户昵称查询失败 | target_user_id=%s | platform=%s",
+            self._mask_user_id(target_user_id) if self._mask_user_id_enabled else target_user_id,
+            platform,
+        )
+        yield event.plain_result(
+            f"未查询到该用户昵称。\n用户ID：{target_user_id}"
+        )
 
     def _resolve_default_homework_image(self) -> str | None:
         for suffix in self._HOMEWORK_SUFFIXES:
@@ -247,7 +284,7 @@ class MyPlugin(Star):
         try:
             return await asyncio.to_thread(_read)
         except Exception as exc:
-            logger.warning("加载统计文件失败 %s: %s", self._stats_file, exc)
+            logger.warning("无法加载统计文件 %s: %s", self._stats_file, exc)
             return {
                 "version": 1,
                 "updated_at": "",
@@ -275,9 +312,10 @@ class MyPlugin(Star):
         try:
             await asyncio.to_thread(_write_atomic)
         except Exception as exc:
-            logger.error("保存统计文件失败 %s: %s", self._stats_file, exc)
+            logger.error("无法保存统计文件 %s: %s", self._stats_file, exc)
 
     async def _fetch_wecom_user_name(self, external_userid: str) -> str:
+
         if not external_userid or external_userid == "unknown":
             return ""
 
@@ -305,7 +343,7 @@ class MyPlugin(Star):
         errcode = int(payload.get("errcode", -1))
         if errcode != 0:
             logger.warning(
-                "昵称查找失败 | user_id=%s | errcode=%s | errmsg=%s",
+                "查找失败 | user_id=%s | errcode=%s | errmsg=%s",
                 external_userid,
                 payload.get("errcode"),
                 payload.get("errmsg"),
@@ -316,7 +354,7 @@ class MyPlugin(Star):
         if not customer_list:
             invalid_list = payload.get("invalid_external_userid") or []
             logger.warning(
-                "昵称查找无结果 | user_id=%s | invalid_external_userid=%s",
+                "查找无结果 | user_id=%s | invalid_external_userid=%s",
                 external_userid,
                 invalid_list,
             )
@@ -344,13 +382,13 @@ class MyPlugin(Star):
                     },
                 )
             except Exception as exc:
-                logger.error("failed to get wecom access_token: %s", exc)
+                logger.error("无法获取wecom令牌: %s", exc)
                 return ""
 
             errcode = int(payload.get("errcode", -1))
             if errcode != 0:
                 logger.error(
-                    "获取 wecom 访问令牌失败 | errcode=%s | errmsg=%s",
+                    "获取令牌失败 | errcode=%s | errmsg=%s",
                     payload.get("errcode"),
                     payload.get("errmsg"),
                 )
@@ -360,7 +398,7 @@ class MyPlugin(Star):
             expires_in = int(payload.get("expires_in", 7200) or 7200)
 
             if not access_token:
-                logger.error("缺少访问令牌")
+                logger.error("访问令牌缺失")
                 return ""
 
             self._access_token = access_token
@@ -372,7 +410,7 @@ class MyPlugin(Star):
             query = urlencode(params)
             req = Request(
                 url=f"{url}?{query}",
-                headers={"User-Agent": "AstrBot-Picture-Send/1.3.0"},
+                headers={"User-Agent": "AstrBot-Picture-Send/1.4.0"},
                 method="GET",
             )
             with urlopen(req, timeout=10) as resp:
@@ -397,7 +435,7 @@ class MyPlugin(Star):
                 data=data,
                 headers={
                     "Content-Type": "application/json",
-                    "User-Agent": "AstrBot-Picture-Send/1.3.0",
+                    "User-Agent": "AstrBot-Picture-Send/1.4.0",
                 },
                 method="POST",
             )
