@@ -74,9 +74,9 @@ class MyPlugin(Star):
         if platform != "wecom":
             yield event.plain_result("本插件仅支持企业微信(wecom)")
             return
-        yield event.image_result("收到请求!")
-        yield event.image_result("正在从服务器拉取图片...")
-        yield event.image_result("(广告位招租...)")
+        yield event.plain_result("收到请求!")
+        yield event.plain_result("正在从服务器拉取图片...")
+        yield event.plain_result("(广告位招租...)")
 
         image_path = self._resolve_default_homework_image()
         if image_path is None:
