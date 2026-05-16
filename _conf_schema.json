@@ -55,5 +55,31 @@
         "default": "📊 作业请求 | user_id={user_id} | user_name={user_name} [api={api}] | platform={platform} | count={count} | time={time}"
       }
     }
+  },
+  "image_compression": {
+    "type": "object",
+    "description": "图片压缩配置",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "description": "是否启用图片压缩",
+        "default": false
+      },
+      "quality": {
+        "type": "int",
+        "description": "压缩质量(1-100),数值越小压缩率越高",
+        "default": 85
+      },
+      "max_width": {
+        "type": "int",
+        "description": "最大宽度(像素),超过则等比缩放,0表示不限制",
+        "default": 1920
+      },
+      "max_height": {
+        "type": "int",
+        "description": "最大高度(像素),超过则等比缩放,0表示不限制",
+        "default": 1080
+      }
+    }
   }
 }

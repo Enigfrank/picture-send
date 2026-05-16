@@ -6,7 +6,6 @@ from pathlib import Path
 
 # 作业图片相关常量
 HOMEWORK_BASE_DIR = Path("/AstrBot/data/homework")
-HOMEWORK_DEFAULT_STEM = "hm"
 HOMEWORK_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
 
 # 企业微信 API 相关常量
@@ -37,3 +36,9 @@ DEFAULT_LOG_TEMPLATE = (
     "作业请求 | user_id={user_id} | user_name={user_name} [api={api}] | "
     "platform={platform} | count={count} | time={time}"
 )
+
+# 图片压缩默认配置
+DEFAULT_COMPRESSION_ENABLED = False
+DEFAULT_COMPRESSION_QUALITY = 85
+DEFAULT_COMPRESSION_MAX_WIDTH = 1920
+DEFAULT_COMPRESSION_MAX_HEIGHT = 1080

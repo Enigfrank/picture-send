@@ -16,13 +16,17 @@ from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star, register
 
 from config import (
+    DEFAULT_COMPRESSION_ENABLED,
+    DEFAULT_COMPRESSION_MAX_HEIGHT,
+    DEFAULT_COMPRESSION_MAX_WIDTH,
+    DEFAULT_COMPRESSION_QUALITY,
     DEFAULT_LOG_TEMPLATE,
     DEFAULT_STATS_FILE_NAME,
     HOMEWORK_BASE_DIR,
-    HOMEWORK_DEFAULT_STEM,
     HOMEWORK_SUFFIXES,
 )
 from http_client import HttpClient
+from image_compressor import ImageCompressor
 from stats_manager import StatsManager
 from utils import clean_text, format_request_time, mask_user_id
 from wecom_client import WecomClient
@@ -57,6 +61,12 @@ class MyPlugin(Star):
         self._mask_user_id_enabled = bool(log_settings.get("mask_user_id", True))
         self._log_template = str(log_settings.get("template", DEFAULT_LOG_TEMPLATE))
 
+        compression = self.config.get("image_compression", {}) or {}
+        self._compression_enabled = bool(compression.get("enabled", DEFAULT_COMPRESSION_ENABLED))
+        self._compression_quality = int(compression.get("quality", DEFAULT_COMPRESSION_QUALITY))
+        self._compression_max_width = int(compression.get("max_width", DEFAULT_COMPRESSION_MAX_WIDTH))
+        self._compression_max_height = int(compression.get("max_height", DEFAULT_COMPRESSION_MAX_HEIGHT))
+
         # 初始化子模块
         self._http = HttpClient()
         self._wecom = WecomClient(
@@ -67,6 +77,12 @@ class MyPlugin(Star):
         self._stats = StatsManager(
             stats_file=self._stats_file,
             keep_latest_records=self._keep_latest_records,
+        )
+        self._compressor = ImageCompressor(
+            enabled=self._compression_enabled,
+            quality=self._compression_quality,
+            max_width=self._compression_max_width,
+            max_height=self._compression_max_height,
         )
 
     async def initialize(self):
@@ -87,9 +103,9 @@ class MyPlugin(Star):
         yield event.plain_result("收到请求!")
         yield event.plain_result("正在从服务器拉取图片...")
 
-        image_path = self._resolve_default_homework_image()
-        if image_path is None:
-            yield event.plain_result("未找到默认作业图片,请上报问题给许工!")
+        image_paths = self._resolve_homework_images()
+        if not image_paths:
+            yield event.plain_result("未找到作业图片,请上报问题给许工!")
             return
 
         user_id = self._get_user_id(event)
@@ -130,12 +146,15 @@ class MyPlugin(Star):
             )
 
         logger.info(
-            "发送作业图片, sender_id=%s, sender_name=%s, image=%s",
+            "发送作业图片, sender_id=%s, sender_name=%s, images=%s, compression=%s",
             user_id,
             user_name,
-            image_path,
+            image_paths,
+            self._compression_enabled,
         )
-        yield event.image_result(image_path)
+        for image_path in image_paths:
+            compressed_path = self._compressor.compress(image_path)
+            yield event.image_result(compressed_path)
 
     @filter.command("userid")
     async def userid_lookup(self, event: AstrMessageEvent, target_user_id: str):
@@ -194,13 +213,19 @@ class MyPlugin(Star):
 
         yield event.plain_result("\n".join(lines))
 
-    def _resolve_default_homework_image(self) -> str | None:
-        """解析默认作业图片路径。"""
+    def _resolve_homework_images(self) -> list[str]:
+        """获取作业文件夹中的所有图片路径。"""
+        if not HOMEWORK_BASE_DIR.exists() or not HOMEWORK_BASE_DIR.is_dir():
+            return []
+
+        images = []
         for ext in HOMEWORK_SUFFIXES:
-            candidate = HOMEWORK_BASE_DIR / f"{HOMEWORK_DEFAULT_STEM}{ext}"
-            if candidate.is_file():
-                return str(candidate)
-        return None
+            for file_path in HOMEWORK_BASE_DIR.glob(f"*{ext}"):
+                if file_path.is_file():
+                    images.append(str(file_path))
+
+        images.sort()
+        return images
 
     def _build_plugin_data_dir(self) -> Path:
         if callable(get_astrbot_data_path):
