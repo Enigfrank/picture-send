@@ -94,18 +94,17 @@ class MyPlugin(Star):
 
     @filter.command("homework")
     async def homework(self, event: AstrMessageEvent):
-        """发送作业图片。用法: /homework"""
+        """发送作业图片.指令: homework"""
         platform = clean_text(event.get_platform_name()).lower()
         if platform != "wecom":
             yield event.plain_result("本插件仅支持企业微信(wecom)")
             return
 
-        yield event.plain_result("收到请求!")
-        yield event.plain_result("正在从服务器拉取图片...")
+        yield event.plain_result("正在获取图片...(也许赞助一点会有意想不到的效果?)")
 
         image_paths = self._resolve_homework_images()
         if not image_paths:
-            yield event.plain_result("未找到作业图片,请上报问题给许工!")
+            yield event.plain_result("未找到图片,请联系许工!")
             return
 
         user_id = self._get_user_id(event)
@@ -146,11 +145,9 @@ class MyPlugin(Star):
             )
 
         logger.info(
-            "发送作业图片, sender_id=%s, sender_name=%s, images=%s, compression=%s",
+            "发送图片, 微信ID=%s, 微信昵称=%s",
             user_id,
             user_name,
-            image_paths,
-            self._compression_enabled,
         )
         for image_path in image_paths:
             compressed_path = self._compressor.compress(image_path)

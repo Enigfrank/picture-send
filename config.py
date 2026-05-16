@@ -33,8 +33,8 @@ DEFAULT_KEEP_LATEST_RECORDS = 100
 
 # 日志默认模板
 DEFAULT_LOG_TEMPLATE = (
-    "作业请求 | user_id={user_id} | user_name={user_name} [api={api}] | "
-    "platform={platform} | count={count} | time={time}"
+    "作业请求 | 微信ID={user_id} | 微信昵称={user_name} [api={api}] | "
+    "计数={count} | 时间={time}"
 )
 
 # 图片压缩默认配置

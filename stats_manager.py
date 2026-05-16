@@ -25,7 +25,6 @@ class StatsManager:
         self,
         user_id: str,
         user_name: str,
-        platform: str,
         request_time: str,
     ) -> int:
         """记录一次请求，返回该用户的累计请求次数。"""
