@@ -1,5 +1,4 @@
 """插件常量与默认配置。"""
-
 from __future__ import annotations
 
 from pathlib import Path

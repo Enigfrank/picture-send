@@ -1,5 +1,4 @@
 """AstrBot 插件入口：作业图片发送。"""
-
 from __future__ import annotations
 
 import sys
@@ -37,7 +36,7 @@ except Exception:
     get_astrbot_data_path = None
 
 
-@register("picture-send", "Enigfrank", "发送作业图片", "1.5.0")
+@register("picture-send", "Enigfrank", "发送作业图片", "1.5.1")
 class MyPlugin(Star):
     """仅适配企业微信微信客服(wecom)的作业图片插件。"""
 
@@ -100,7 +99,19 @@ class MyPlugin(Star):
             yield event.plain_result("本插件仅支持企业微信(wecom)")
             return
 
-        yield event.plain_result("正在获取图片...(也许赞助一点会有意想不到的效果?)")
+        # 接入一言 API
+        hitokoto_text = ""
+        try:
+            hitokoto_data = await self._http.get_json("https://v1.hitokoto.cn/", {})
+            hitokoto_text = str(hitokoto_data.get("hitokoto", "")).strip()
+        except Exception as exc:
+            logger.debug("获取一言失败: %s", exc)
+
+        base_msg = "正在为您拉取作业图片..."
+        if hitokoto_text:
+            yield event.plain_result(f"{base_msg}\n💡 一言: {hitokoto_text}")
+        else:
+            yield event.plain_result(base_msg)
 
         image_paths = self._resolve_homework_images()
         if not image_paths:
@@ -131,6 +142,7 @@ class MyPlugin(Star):
                 request_time=request_time,
             )
 
+        # 保留结构化日志
         if self._log_enabled:
             log_user_id = mask_user_id(user_id) if self._mask_user_id_enabled else user_id
             logger.info(
@@ -144,14 +156,16 @@ class MyPlugin(Star):
                 )
             )
 
-        logger.info(
-            "发送图片, 微信ID=%s, 微信昵称=%s",
-            user_id,
-            user_name,
-        )
+        # 发送图片并清理临时文件
         for image_path in image_paths:
             compressed_path = self._compressor.compress(image_path)
             yield event.image_result(compressed_path)
+            if compressed_path != image_path:
+                try:
+                    Path(compressed_path).unlink(missing_ok=True)
+                    logger.debug("已清理临时压缩文件: %s", compressed_path)
+                except Exception as exc:
+                    logger.warning("清理临时文件失败: %s | error=%s", compressed_path, exc)
 
     @filter.command("userid")
     async def userid_lookup(self, event: AstrMessageEvent, target_user_id: str):

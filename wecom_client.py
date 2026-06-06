@@ -1,5 +1,4 @@
 """企业微信 API 客户端，包含 access_token 管理和昵称查询。"""
-
 from __future__ import annotations
 
 import asyncio
@@ -7,7 +6,6 @@ from datetime import datetime
 from typing import Any
 
 from astrbot.api import logger
-
 from config import (
     NICKNAME_CACHE_TTL_SECONDS,
     TOKEN_MIN_VALID_SECONDS,
@@ -20,7 +18,6 @@ from http_client import HttpClient
 
 class WecomClient:
     """企业微信客服 API 客户端。
-
     负责 access_token 的获取与缓存，以及用户昵称的查询与缓存。
     """
 

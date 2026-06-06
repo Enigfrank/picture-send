@@ -1,5 +1,4 @@
 """HTTP 客户端封装，预留异步接口便于后续升级。"""
-
 from __future__ import annotations
 
 import asyncio
@@ -9,13 +8,11 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from astrbot.api import logger
-
 from config import HTTP_TIMEOUT
 
 
 class HttpClient:
     """同步 HTTP 客户端的异步包装器。
-
     当前使用 urllib + asyncio.to_thread 实现，后续可无缝替换为 aiohttp/httpx。
     """
 
