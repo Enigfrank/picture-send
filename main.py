@@ -14,20 +14,7 @@ from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
 from astrbot.api.star import Context, Star, register
 
-from config import (
-    DEFAULT_COMPRESSION_ENABLED,
-    DEFAULT_COMPRESSION_MAX_HEIGHT,
-    DEFAULT_COMPRESSION_MAX_WIDTH,
-    DEFAULT_COMPRESSION_QUALITY,
-    DEFAULT_ERROR_FORWARD_ENABLED,
-    DEFAULT_ERROR_FORWARD_INCLUDE_TRACEBACK,
-    DEFAULT_ERROR_FORWARD_MAX_LENGTH,
-    DEFAULT_ERROR_FORWARD_NOTIFY_USER,
-    DEFAULT_LOG_TEMPLATE,
-    DEFAULT_STATS_FILE_NAME,
-    HOMEWORK_BASE_DIR,
-    HOMEWORK_SUFFIXES,
-)
+import config as plugin_config
 from http_client import HttpClient
 from image_compressor import ImageCompressor
 from stats_manager import StatsManager
@@ -38,6 +25,31 @@ try:
     from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 except Exception:
     get_astrbot_data_path = None
+
+
+def _get_config_default(name: str, fallback: Any) -> Any:
+    """读取插件配置常量，并在旧版 config.py 缺失字段时使用兼容默认值。"""
+    return getattr(plugin_config, name, fallback)
+
+
+HOMEWORK_BASE_DIR = _get_config_default("HOMEWORK_BASE_DIR", Path("/AstrBot/data/homework"))
+HOMEWORK_SUFFIXES = _get_config_default("HOMEWORK_SUFFIXES", (".png", ".jpg", ".jpeg", ".webp"))
+DEFAULT_STATS_FILE_NAME = _get_config_default("DEFAULT_STATS_FILE_NAME", "homework_stats.json")
+DEFAULT_LOG_TEMPLATE = _get_config_default(
+    "DEFAULT_LOG_TEMPLATE",
+    "作业请求 | 微信ID={user_id} | 微信昵称={user_name} [api={api}] | "
+    "计数={count} | 时间={time}",
+)
+DEFAULT_COMPRESSION_ENABLED = _get_config_default("DEFAULT_COMPRESSION_ENABLED", False)
+DEFAULT_COMPRESSION_QUALITY = _get_config_default("DEFAULT_COMPRESSION_QUALITY", 85)
+DEFAULT_COMPRESSION_MAX_WIDTH = _get_config_default("DEFAULT_COMPRESSION_MAX_WIDTH", 1920)
+DEFAULT_COMPRESSION_MAX_HEIGHT = _get_config_default("DEFAULT_COMPRESSION_MAX_HEIGHT", 1080)
+DEFAULT_ERROR_FORWARD_ENABLED = _get_config_default("DEFAULT_ERROR_FORWARD_ENABLED", False)
+DEFAULT_ERROR_FORWARD_INCLUDE_TRACEBACK = _get_config_default(
+    "DEFAULT_ERROR_FORWARD_INCLUDE_TRACEBACK", True
+)
+DEFAULT_ERROR_FORWARD_NOTIFY_USER = _get_config_default("DEFAULT_ERROR_FORWARD_NOTIFY_USER", True)
+DEFAULT_ERROR_FORWARD_MAX_LENGTH = _get_config_default("DEFAULT_ERROR_FORWARD_MAX_LENGTH", 600)
 
 
 @register("picture-send", "Enigfrank", "发送作业图片", "1.5.2")
